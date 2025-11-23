@@ -1,3 +1,162 @@
+// Cloud Storage Class
+class CloudStorage {
+    constructor() {
+        this.donorsRef = donorsRef;
+        this.positionsRef = positionsRef;
+    }
+
+    async loadDonors() {
+        try {
+            console.log('🔄 Loading donors from Firebase...');
+            const snapshot = await this.donorsRef.once('value');
+            const donorsData = snapshot.val();
+            
+            let donors = [];
+            if (donorsData) {
+                // Convert Firebase object to array
+                donors = Object.values(donorsData);
+                console.log(`✅ Loaded ${donors.length} donors from Firebase`);
+            } else {
+                console.log('ℹ️ No data found in Firebase, starting fresh');
+            }
+            
+            // Always update localStorage with latest data
+            localStorage.setItem('lifeshare-donors', JSON.stringify(donors));
+            return donors;
+            
+        } catch (error) {
+            console.error('❌ Firebase load error:', error);
+            return this.loadFromLocalStorage();
+        }
+    }
+
+    async saveDonors(donors) {
+        try {
+            console.log('💾 Saving donors to Firebase...');
+            
+            // Convert array to Firebase object format
+            const donorsObject = {};
+            donors.forEach(donor => {
+                if (donor.profilePicture && donor.profilePicture.length > 50000) {
+                    // Remove large images for Firebase
+                    const { profilePicture, ...donorWithoutImage } = donor;
+                    donorsObject[donor.id] = donorWithoutImage;
+                } else {
+                    donorsObject[donor.id] = donor;
+                }
+            });
+            
+            await this.donorsRef.set(donorsObject);
+            console.log('✅ Donors saved to Firebase');
+            
+            // Update localStorage
+            localStorage.setItem('lifeshare-donors', JSON.stringify(donors));
+            return true;
+            
+        } catch (error) {
+            console.error('❌ Firebase save error:', error);
+            return this.saveToLocalStorage(donors);
+        }
+    }
+
+    async saveDonorPositions(positions) {
+        try {
+            await this.positionsRef.set(positions);
+            console.log('✅ Donor positions saved to Firebase');
+            return true;
+        } catch (error) {
+            console.error('❌ Error saving positions:', error);
+            return false;
+        }
+    }
+
+    async loadDonorPositions() {
+        try {
+            const snapshot = await this.positionsRef.once('value');
+            return snapshot.val() || {};
+        } catch (error) {
+            console.error('❌ Error loading positions:', error);
+            return {};
+        }
+    }
+
+    loadFromLocalStorage() {
+        try {
+            const stored = localStorage.getItem('lifeshare-donors');
+            return stored ? JSON.parse(stored) : [];
+        } catch (error) {
+            console.error('Error loading from localStorage:', error);
+            return [];
+        }
+    }
+
+    saveToLocalStorage(donors) {
+        try {
+            localStorage.setItem('lifeshare-donors', JSON.stringify(donors));
+            return true;
+        } catch (error) {
+            console.error('Error saving to localStorage:', error);
+            return false;
+        }
+    }
+
+    generateId() {
+        return 'donor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    isEligibleToDonate(lastDonationDate) {
+        if (!lastDonationDate) return true;
+        const lastDonation = new Date(lastDonationDate);
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        return lastDonation <= threeMonthsAgo;
+    }
+
+    getEligibilityStatus(lastDonationDate) {
+        if (!lastDonationDate) {
+            return { 
+                eligible: true, 
+                message: "Eligible to donate now",
+                icon: "fa-check-circle"
+            };
+        }
+        
+        const lastDonation = new Date(lastDonationDate);
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        
+        if (lastDonation <= threeMonthsAgo) {
+            return { 
+                eligible: true, 
+                message: "Eligible to donate now",
+                icon: "fa-check-circle"
+            };
+        } else {
+            const nextDonationDate = new Date(lastDonation);
+            nextDonationDate.setMonth(lastDonation.getMonth() + 3);
+            const daysLeft = Math.ceil((nextDonationDate - new Date()) / (1000 * 60 * 60 * 24));
+            return { 
+                eligible: false, 
+                message: `Not eligible yet (${daysLeft} days remaining)`,
+                icon: "fa-times-circle"
+            };
+        }
+    }
+
+    getStats(donors) {
+        const total = donors.length;
+        const eligible = donors.filter(d => this.isEligibleToDonate(d.lastDonation)).length;
+        const universal = donors.filter(d => d.bloodType === "O-").length;
+        const recent = donors.filter(d => {
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return new Date(d.createdAt) >= weekAgo;
+        }).length;
+
+        return { total, eligible, universal, recent };
+    }
+}
+
 // Main Application Code
 class BloodDonorApp {
     constructor() {
@@ -789,165 +948,6 @@ class BloodDonorApp {
             };
             img.src = dataUrl;
         });
-    }
-}
-
-// Cloud Storage Class (Moved outside BloodDonorApp)
-class CloudStorage {
-    constructor() {
-        this.donorsRef = donorsRef;
-        this.positionsRef = positionsRef;
-    }
-
-    async loadDonors() {
-        try {
-            console.log('🔄 Loading donors from Firebase...');
-            const snapshot = await this.donorsRef.once('value');
-            const donorsData = snapshot.val();
-            
-            let donors = [];
-            if (donorsData) {
-                // Convert Firebase object to array
-                donors = Object.values(donorsData);
-                console.log(`✅ Loaded ${donors.length} donors from Firebase`);
-            } else {
-                console.log('ℹ️ No data found in Firebase, starting fresh');
-            }
-            
-            // Always update localStorage with latest data
-            localStorage.setItem('lifeshare-donors', JSON.stringify(donors));
-            return donors;
-            
-        } catch (error) {
-            console.error('❌ Firebase load error:', error);
-            return this.loadFromLocalStorage();
-        }
-    }
-
-    async saveDonors(donors) {
-        try {
-            console.log('💾 Saving donors to Firebase...');
-            
-            // Convert array to Firebase object format
-            const donorsObject = {};
-            donors.forEach(donor => {
-                if (donor.profilePicture && donor.profilePicture.length > 50000) {
-                    // Remove large images for Firebase
-                    const { profilePicture, ...donorWithoutImage } = donor;
-                    donorsObject[donor.id] = donorWithoutImage;
-                } else {
-                    donorsObject[donor.id] = donor;
-                }
-            });
-            
-            await this.donorsRef.set(donorsObject);
-            console.log('✅ Donors saved to Firebase');
-            
-            // Update localStorage
-            localStorage.setItem('lifeshare-donors', JSON.stringify(donors));
-            return true;
-            
-        } catch (error) {
-            console.error('❌ Firebase save error:', error);
-            return this.saveToLocalStorage(donors);
-        }
-    }
-
-    async saveDonorPositions(positions) {
-        try {
-            await this.positionsRef.set(positions);
-            console.log('✅ Donor positions saved to Firebase');
-            return true;
-        } catch (error) {
-            console.error('❌ Error saving positions:', error);
-            return false;
-        }
-    }
-
-    async loadDonorPositions() {
-        try {
-            const snapshot = await this.positionsRef.once('value');
-            return snapshot.val() || {};
-        } catch (error) {
-            console.error('❌ Error loading positions:', error);
-            return {};
-        }
-    }
-
-    loadFromLocalStorage() {
-        try {
-            const stored = localStorage.getItem('lifeshare-donors');
-            return stored ? JSON.parse(stored) : [];
-        } catch (error) {
-            console.error('Error loading from localStorage:', error);
-            return [];
-        }
-    }
-
-    saveToLocalStorage(donors) {
-        try {
-            localStorage.setItem('lifeshare-donors', JSON.stringify(donors));
-            return true;
-        } catch (error) {
-            console.error('Error saving to localStorage:', error);
-            return false;
-        }
-    }
-
-    generateId() {
-        return 'donor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    }
-
-    isEligibleToDonate(lastDonationDate) {
-        if (!lastDonationDate) return true;
-        const lastDonation = new Date(lastDonationDate);
-        const threeMonthsAgo = new Date();
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-        return lastDonation <= threeMonthsAgo;
-    }
-
-    getEligibilityStatus(lastDonationDate) {
-        if (!lastDonationDate) {
-            return { 
-                eligible: true, 
-                message: "Eligible to donate now",
-                icon: "fa-check-circle"
-            };
-        }
-        
-        const lastDonation = new Date(lastDonationDate);
-        const threeMonthsAgo = new Date();
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-        
-        if (lastDonation <= threeMonthsAgo) {
-            return { 
-                eligible: true, 
-                message: "Eligible to donate now",
-                icon: "fa-check-circle"
-            };
-        } else {
-            const nextDonationDate = new Date(lastDonation);
-            nextDonationDate.setMonth(lastDonation.getMonth() + 3);
-            const daysLeft = Math.ceil((nextDonationDate - new Date()) / (1000 * 60 * 60 * 24));
-            return { 
-                eligible: false, 
-                message: `Not eligible yet (${daysLeft} days remaining)`,
-                icon: "fa-times-circle"
-            };
-        }
-    }
-
-    getStats(donors) {
-        const total = donors.length;
-        const eligible = donors.filter(d => this.isEligibleToDonate(d.lastDonation)).length;
-        const universal = donors.filter(d => d.bloodType === "O-").length;
-        const recent = donors.filter(d => {
-            const weekAgo = new Date();
-            weekAgo.setDate(weekAgo.getDate() - 7);
-            return new Date(d.createdAt) >= weekAgo;
-        }).length;
-
-        return { total, eligible, universal, recent };
     }
 }
 
