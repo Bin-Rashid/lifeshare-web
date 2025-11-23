@@ -17,191 +17,6 @@ class BloodDonorApp {
         console.log('🚀 LifeShare Blood Donor System Initialized');
     }
 
-    // Cloud Storage Class
-    class CloudStorage {
-        constructor() {
-            this.donorsRef = donorsRef;
-            this.positionsRef = positionsRef;
-        }
-
-        async loadDonors() {
-            try {
-                console.log('🔄 Loading donors from Firebase...');
-                const snapshot = await this.donorsRef.once('value');
-                const donorsData = snapshot.val();
-                
-                let donors = [];
-                if (donorsData) {
-                    // Convert Firebase object to array
-                    donors = Object.values(donorsData);
-                    console.log(`✅ Loaded ${donors.length} donors from Firebase`);
-                } else {
-                    console.log('ℹ️ No data found in Firebase, starting fresh');
-                }
-                
-                // Always update localStorage with latest data
-                localStorage.setItem('lifeshare-donors', JSON.stringify(donors));
-                return donors;
-                
-            } catch (error) {
-                console.error('❌ Firebase load error:', error);
-                return this.loadFromLocalStorage();
-            }
-        }
-
-        async saveDonors(donors) {
-            try {
-                console.log('💾 Saving donors to Firebase...');
-                
-                // Convert array to Firebase object format
-                const donorsObject = {};
-                donors.forEach(donor => {
-                    if (donor.profilePicture && donor.profilePicture.length > 50000) {
-                        // Remove large images for Firebase
-                        const { profilePicture, ...donorWithoutImage } = donor;
-                        donorsObject[donor.id] = donorWithoutImage;
-                    } else {
-                        donorsObject[donor.id] = donor;
-                    }
-                });
-                
-                await this.donorsRef.set(donorsObject);
-                console.log('✅ Donors saved to Firebase');
-                
-                // Update localStorage
-                localStorage.setItem('lifeshare-donors', JSON.stringify(donors));
-                return true;
-                
-            } catch (error) {
-                console.error('❌ Firebase save error:', error);
-                return this.saveToLocalStorage(donors);
-            }
-        }
-
-        async saveDonorPositions(positions) {
-            try {
-                await this.positionsRef.set(positions);
-                console.log('✅ Donor positions saved to Firebase');
-                return true;
-            } catch (error) {
-                console.error('❌ Error saving positions:', error);
-                return false;
-            }
-        }
-
-        async loadDonorPositions() {
-            try {
-                const snapshot = await this.positionsRef.once('value');
-                return snapshot.val() || {};
-            } catch (error) {
-                console.error('❌ Error loading positions:', error);
-                return {};
-            }
-        }
-
-        loadFromLocalStorage() {
-            try {
-                const stored = localStorage.getItem('lifeshare-donors');
-                return stored ? JSON.parse(stored) : [];
-            } catch (error) {
-                console.error('Error loading from localStorage:', error);
-                return [];
-            }
-        }
-
-        saveToLocalStorage(donors) {
-            try {
-                localStorage.setItem('lifeshare-donors', JSON.stringify(donors));
-                return true;
-            } catch (error) {
-                console.error('Error saving to localStorage:', error);
-                return false;
-            }
-        }
-
-        generateId() {
-            return 'donor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        }
-
-        isEligibleToDonate(lastDonationDate) {
-            if (!lastDonationDate) return true;
-            const lastDonation = new Date(lastDonationDate);
-            const threeMonthsAgo = new Date();
-            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-            return lastDonation <= threeMonthsAgo;
-        }
-
-        getEligibilityStatus(lastDonationDate) {
-            if (!lastDonationDate) {
-                return { 
-                    eligible: true, 
-                    message: "Eligible to donate now",
-                    icon: "fa-check-circle"
-                };
-            }
-            
-            const lastDonation = new Date(lastDonationDate);
-            const threeMonthsAgo = new Date();
-            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-            
-            if (lastDonation <= threeMonthsAgo) {
-                return { 
-                    eligible: true, 
-                    message: "Eligible to donate now",
-                    icon: "fa-check-circle"
-                };
-            } else {
-                const nextDonationDate = new Date(lastDonation);
-                nextDonationDate.setMonth(lastDonation.getMonth() + 3);
-                const daysLeft = Math.ceil((nextDonationDate - new Date()) / (1000 * 60 * 60 * 24));
-                return { 
-                    eligible: false, 
-                    message: `Not eligible yet (${daysLeft} days remaining)`,
-                    icon: "fa-times-circle"
-                };
-            }
-        }
-
-        getStats(donors) {
-            const total = donors.length;
-            const eligible = donors.filter(d => this.isEligibleToDonate(d.lastDonation)).length;
-            const universal = donors.filter(d => d.bloodType === "O-").length;
-            const recent = donors.filter(d => {
-                const weekAgo = new Date();
-                weekAgo.setDate(weekAgo.getDate() - 7);
-                return new Date(d.createdAt) >= weekAgo;
-            }).length;
-
-            return { total, eligible, universal, recent };
-        }
-    }
-
-    // Image compression function
-    compressImage(dataUrl, maxWidth = 150, quality = 0.7) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                let width = img.width;
-                let height = img.height;
-                
-                if (width > maxWidth) {
-                    height = (height * maxWidth) / width;
-                    width = maxWidth;
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                
-                ctx.drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', quality));
-            };
-            img.src = dataUrl;
-        });
-    }
-
     async loadDonors() {
         this.donors = await this.dataStorage.loadDonors();
         this.filteredDonors = [...this.donors];
@@ -532,18 +347,200 @@ class BloodDonorApp {
         );
     }
 
-    // ... (Rest of the methods including handleFormSubmit, handleEditFormSubmit, applyFilters, etc.)
-    // These would be similar to your existing code but integrated with the new features
-
     async handleFormSubmit(e) {
         e.preventDefault();
-        // Implementation similar to your existing form submission
-        // but integrated with the new auth system
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const submitLoading = document.getElementById('submitLoading');
+        
+        submitText.style.display = 'none';
+        submitLoading.style.display = 'inline-block';
+        submitBtn.disabled = true;
+        
+        const name = document.getElementById('name').value.trim();
+        const age = document.getElementById('age').value;
+        const phone = document.getElementById('phone').value.trim();
+        const bloodType = document.getElementById('bloodType').value;
+        const district = document.getElementById('district').value;
+        const city = document.getElementById('city').value.trim();
+        const lastDonation = document.getElementById('lastDonation').value;
+        
+        // Validation
+        if (!name || !age || !phone || !district || !city || !lastDonation) {
+            showNotification('Please fill in all required fields.', 'error');
+            submitText.style.display = 'inline-block';
+            submitLoading.style.display = 'none';
+            submitBtn.disabled = false;
+            return;
+        }
+        
+        if (!document.getElementById('terms').checked) {
+            showNotification('Please agree to the terms and conditions.', 'error');
+            submitText.style.display = 'inline-block';
+            submitLoading.style.display = 'none';
+            submitBtn.disabled = false;
+            return;
+        }
+        
+        try {
+            const profilePictureInput = document.getElementById('registerProfilePicture');
+            
+            if (profilePictureInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    // Compress image if it's too large
+                    let compressedImage = e.target.result;
+                    if (compressedImage.length > 100000) {
+                        compressedImage = await this.compressImage(compressedImage);
+                    }
+                    
+                    const newDonor = {
+                        name,
+                        age: parseInt(age),
+                        bloodType,
+                        district,
+                        city,
+                        phone,
+                        lastDonation,
+                        profilePicture: compressedImage,
+                        id: this.dataStorage.generateId(),
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    const success = await this.addDonor(newDonor);
+                    
+                    if (success) {
+                        // Register user
+                        await this.authManager.registerUser(newDonor);
+                        
+                        showNotification('🎉 Thank you for registering as a blood donor! Your profile has been created.', 'success');
+                        document.getElementById('bloodDonorForm').reset();
+                        document.getElementById('registerProfilePreview').innerHTML = '<i class="fas fa-user"></i>';
+                        
+                        // Switch to profile tab
+                        this.switchToTab('profile');
+                    } else {
+                        showNotification('There was an error saving your information. Please try again.', 'error');
+                    }
+                    
+                    submitText.style.display = 'inline-block';
+                    submitLoading.style.display = 'none';
+                    submitBtn.disabled = false;
+                };
+                reader.readAsDataURL(profilePictureInput.files[0]);
+            } else {
+                const newDonor = {
+                    name,
+                    age: parseInt(age),
+                    bloodType,
+                    district,
+                    city,
+                    phone,
+                    lastDonation,
+                    id: this.dataStorage.generateId(),
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                
+                const success = await this.addDonor(newDonor);
+                
+                if (success) {
+                    // Register user
+                    await this.authManager.registerUser(newDonor);
+                    
+                    showNotification('🎉 Thank you for registering as a blood donor! Your profile has been created.', 'success');
+                    e.target.reset();
+                    document.getElementById('registerProfilePreview').innerHTML = '<i class="fas fa-user"></i>';
+                    
+                    // Switch to profile tab
+                    this.switchToTab('profile');
+                } else {
+                    showNotification('There was an error saving your information. Please try again.', 'error');
+                }
+                
+                submitText.style.display = 'inline-block';
+                submitLoading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error in form submission:', error);
+            showNotification('There was an error saving your information. Please try again.', 'error');
+            submitText.style.display = 'inline-block';
+            submitLoading.style.display = 'none';
+            submitBtn.disabled = false;
+        }
     }
 
     async handleEditFormSubmit(e) {
         e.preventDefault();
-        // Implementation for edit form submission
+        
+        const id = document.getElementById('editId').value;
+        const updatedData = {
+            name: document.getElementById('editName').value.trim(),
+            age: parseInt(document.getElementById('editAge').value),
+            phone: document.getElementById('editPhone').value.trim(),
+            bloodType: document.getElementById('editBloodType').value,
+            district: document.getElementById('editDistrict').value,
+            city: document.getElementById('editCity').value.trim(),
+            lastDonation: document.getElementById('editLastDonation').value,
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Validation
+        if (!updatedData.name || !updatedData.age || !updatedData.phone || !updatedData.district || !updatedData.city || !updatedData.lastDonation) {
+            showNotification('Please fill in all required fields.', 'error');
+            return;
+        }
+        
+        const profilePictureInput = document.getElementById('editProfilePicture');
+        if (profilePictureInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                // Compress image if it's too large
+                let compressedImage = e.target.result;
+                if (compressedImage.length > 100000) {
+                    compressedImage = await this.compressImage(compressedImage);
+                }
+                
+                updatedData.profilePicture = compressedImage;
+                const success = await this.updateDonor(id, updatedData);
+                if (success) {
+                    showNotification('✅ Your information has been updated successfully!', 'success');
+                    await this.displayDonors();
+                    document.getElementById('editModal').style.display = 'none';
+                    
+                    // Update user data if it's the current user
+                    const currentUser = this.authManager.getCurrentUser();
+                    if (currentUser && currentUser.id === id) {
+                        const updatedUser = { ...currentUser, ...updatedData };
+                        localStorage.setItem('lifeshare-user', JSON.stringify(updatedUser));
+                        this.authManager.currentUser = updatedUser;
+                    }
+                } else {
+                    showNotification('Failed to update your information.', 'error');
+                }
+            };
+            reader.readAsDataURL(profilePictureInput.files[0]);
+        } else {
+            const success = await this.updateDonor(id, updatedData);
+            if (success) {
+                showNotification('✅ Your information has been updated successfully!', 'success');
+                await this.displayDonors();
+                document.getElementById('editModal').style.display = 'none';
+                
+                // Update user data if it's the current user
+                const currentUser = this.authManager.getCurrentUser();
+                if (currentUser && currentUser.id === id) {
+                    const updatedUser = { ...currentUser, ...updatedData };
+                    localStorage.setItem('lifeshare-user', JSON.stringify(updatedUser));
+                    this.authManager.currentUser = updatedUser;
+                }
+            } else {
+                showNotification('Failed to update your information.', 'error');
+            }
+        }
     }
 
     async handleAdminLogin(e) {
@@ -562,16 +559,145 @@ class BloodDonorApp {
     }
 
     applyFilters() {
-        // Filter implementation
+        const bloodType = document.getElementById('filterBloodType').value;
+        const district = document.getElementById('filterDistrict').value;
+        const city = document.getElementById('filterCity').value.toLowerCase();
+        const status = document.getElementById('filterStatus').value;
+        
+        this.filteredDonors = this.donors.filter(donor => {
+            const matchesBloodType = !bloodType || donor.bloodType === bloodType;
+            const matchesDistrict = !district || donor.district === district;
+            const matchesCity = !city || donor.city.toLowerCase().includes(city);
+            const matchesStatus = !status || 
+                (status === 'eligible' && this.dataStorage.isEligibleToDonate(donor.lastDonation)) ||
+                (status === 'not-eligible' && !this.dataStorage.isEligibleToDonate(donor.lastDonation));
+            
+            return matchesBloodType && matchesDistrict && matchesCity && matchesStatus;
+        });
+        
+        this.displayDonors(this.filteredDonors);
     }
 
     clearFilters() {
-        // Clear filters implementation
+        document.getElementById('filterBloodType').value = '';
+        document.getElementById('filterDistrict').value = '';
+        document.getElementById('filterCity').value = '';
+        document.getElementById('filterStatus').value = '';
+        document.getElementById('sortByName').value = 'asc';
+        this.currentSort = 'asc';
+        this.filteredDonors = [...this.donors];
+        this.displayDonors();
+    }
+
+    async exportData() {
+        const donors = await this.dataStorage.loadDonors();
+        const dataStr = JSON.stringify(donors, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `blood-donors-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        showNotification('Data exported successfully!', 'info');
+    }
+
+    async refreshData() {
+        showNotification('Refreshing data from cloud...', 'info', 2000);
+        await this.loadDonors();
+        await this.updateStats();
+        showNotification('Data refreshed successfully!', 'success');
+    }
+
+    async addDonor(donor) {
+        this.donors.push(donor);
+        const success = await this.dataStorage.saveDonors(this.donors);
+        
+        if (success) {
+            console.log('✅ Donor added successfully');
+            await this.updateStats();
+            return true;
+        } else {
+            console.error('❌ Failed to add donor');
+            return false;
+        }
+    }
+
+    async updateDonor(id, updatedData) {
+        const index = this.donors.findIndex(d => d.id === id);
+        
+        if (index !== -1) {
+            this.donors[index] = {
+                ...this.donors[index],
+                ...updatedData
+            };
+            
+            const success = await this.dataStorage.saveDonors(this.donors);
+            return success;
+        }
+        
+        return false;
+    }
+
+    async deleteDonor(id) {
+        this.donors = this.donors.filter(d => d.id !== id);
+        const success = await this.dataStorage.saveDonors(this.donors);
+        
+        if (success) {
+            showNotification('Donor deleted successfully.', 'success');
+            document.getElementById('deleteModal').style.display = 'none';
+            await this.displayDonors();
+            await this.updateStats();
+        } else {
+            showNotification('Failed to delete donor. Please try again.', 'error');
+        }
+    }
+
+    openEditModal(donorId) {
+        const donor = this.donors.find(d => d.id === donorId);
+        
+        if (!donor) {
+            showNotification('Donor not found.', 'error');
+            return;
+        }
+        
+        // Populate form with donor data
+        document.getElementById('editId').value = donor.id;
+        document.getElementById('editName').value = donor.name || '';
+        document.getElementById('editAge').value = donor.age || '';
+        document.getElementById('editPhone').value = donor.phone || '';
+        document.getElementById('editBloodType').value = donor.bloodType || '';
+        document.getElementById('editDistrict').value = donor.district || '';
+        document.getElementById('editCity').value = donor.city || '';
+        document.getElementById('editLastDonation').value = donor.lastDonation || '';
+        
+        // Set profile picture preview
+        const profilePreview = document.getElementById('profilePreview');
+        if (donor.profilePicture) {
+            profilePreview.innerHTML = `<img src="${donor.profilePicture}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+        } else {
+            profilePreview.innerHTML = '<i class="fas fa-user"></i>';
+        }
+        
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    openDeleteModal(donorId) {
+        document.getElementById('deleteModal').style.display = 'flex';
+        document.getElementById('confirmDelete').setAttribute('data-id', donorId);
     }
 
     async loadUserProfile() {
         const user = this.authManager.getCurrentUser();
-        if (!user) return;
+        if (!user) {
+            this.switchToTab('register');
+            showNotification('Please register first to view your profile.', 'info');
+            return;
+        }
 
         const profileContainer = document.getElementById('profileContainer');
         const eligibility = this.dataStorage.getEligibilityStatus(user.lastDonation);
@@ -638,6 +764,190 @@ class BloodDonorApp {
                 reader.readAsDataURL(file);
             }
         });
+    }
+
+    compressImage(dataUrl, maxWidth = 150, quality = 0.7) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.src = dataUrl;
+        });
+    }
+}
+
+// Cloud Storage Class (Moved outside BloodDonorApp)
+class CloudStorage {
+    constructor() {
+        this.donorsRef = donorsRef;
+        this.positionsRef = positionsRef;
+    }
+
+    async loadDonors() {
+        try {
+            console.log('🔄 Loading donors from Firebase...');
+            const snapshot = await this.donorsRef.once('value');
+            const donorsData = snapshot.val();
+            
+            let donors = [];
+            if (donorsData) {
+                // Convert Firebase object to array
+                donors = Object.values(donorsData);
+                console.log(`✅ Loaded ${donors.length} donors from Firebase`);
+            } else {
+                console.log('ℹ️ No data found in Firebase, starting fresh');
+            }
+            
+            // Always update localStorage with latest data
+            localStorage.setItem('lifeshare-donors', JSON.stringify(donors));
+            return donors;
+            
+        } catch (error) {
+            console.error('❌ Firebase load error:', error);
+            return this.loadFromLocalStorage();
+        }
+    }
+
+    async saveDonors(donors) {
+        try {
+            console.log('💾 Saving donors to Firebase...');
+            
+            // Convert array to Firebase object format
+            const donorsObject = {};
+            donors.forEach(donor => {
+                if (donor.profilePicture && donor.profilePicture.length > 50000) {
+                    // Remove large images for Firebase
+                    const { profilePicture, ...donorWithoutImage } = donor;
+                    donorsObject[donor.id] = donorWithoutImage;
+                } else {
+                    donorsObject[donor.id] = donor;
+                }
+            });
+            
+            await this.donorsRef.set(donorsObject);
+            console.log('✅ Donors saved to Firebase');
+            
+            // Update localStorage
+            localStorage.setItem('lifeshare-donors', JSON.stringify(donors));
+            return true;
+            
+        } catch (error) {
+            console.error('❌ Firebase save error:', error);
+            return this.saveToLocalStorage(donors);
+        }
+    }
+
+    async saveDonorPositions(positions) {
+        try {
+            await this.positionsRef.set(positions);
+            console.log('✅ Donor positions saved to Firebase');
+            return true;
+        } catch (error) {
+            console.error('❌ Error saving positions:', error);
+            return false;
+        }
+    }
+
+    async loadDonorPositions() {
+        try {
+            const snapshot = await this.positionsRef.once('value');
+            return snapshot.val() || {};
+        } catch (error) {
+            console.error('❌ Error loading positions:', error);
+            return {};
+        }
+    }
+
+    loadFromLocalStorage() {
+        try {
+            const stored = localStorage.getItem('lifeshare-donors');
+            return stored ? JSON.parse(stored) : [];
+        } catch (error) {
+            console.error('Error loading from localStorage:', error);
+            return [];
+        }
+    }
+
+    saveToLocalStorage(donors) {
+        try {
+            localStorage.setItem('lifeshare-donors', JSON.stringify(donors));
+            return true;
+        } catch (error) {
+            console.error('Error saving to localStorage:', error);
+            return false;
+        }
+    }
+
+    generateId() {
+        return 'donor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    isEligibleToDonate(lastDonationDate) {
+        if (!lastDonationDate) return true;
+        const lastDonation = new Date(lastDonationDate);
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        return lastDonation <= threeMonthsAgo;
+    }
+
+    getEligibilityStatus(lastDonationDate) {
+        if (!lastDonationDate) {
+            return { 
+                eligible: true, 
+                message: "Eligible to donate now",
+                icon: "fa-check-circle"
+            };
+        }
+        
+        const lastDonation = new Date(lastDonationDate);
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        
+        if (lastDonation <= threeMonthsAgo) {
+            return { 
+                eligible: true, 
+                message: "Eligible to donate now",
+                icon: "fa-check-circle"
+            };
+        } else {
+            const nextDonationDate = new Date(lastDonation);
+            nextDonationDate.setMonth(lastDonation.getMonth() + 3);
+            const daysLeft = Math.ceil((nextDonationDate - new Date()) / (1000 * 60 * 60 * 24));
+            return { 
+                eligible: false, 
+                message: `Not eligible yet (${daysLeft} days remaining)`,
+                icon: "fa-times-circle"
+            };
+        }
+    }
+
+    getStats(donors) {
+        const total = donors.length;
+        const eligible = donors.filter(d => this.isEligibleToDonate(d.lastDonation)).length;
+        const universal = donors.filter(d => d.bloodType === "O-").length;
+        const recent = donors.filter(d => {
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return new Date(d.createdAt) >= weekAgo;
+        }).length;
+
+        return { total, eligible, universal, recent };
     }
 }
 
