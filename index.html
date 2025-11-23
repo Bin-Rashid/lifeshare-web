@@ -179,6 +179,7 @@
             text-align: left;
             font-family: var(--font-main);
             font-size: 0.95rem;
+            cursor: pointer;
         }
 
         .profile-dropdown-item:hover {
@@ -2670,8 +2671,7 @@
         // Profile dropdown toggle
         document.getElementById('profileToggle').addEventListener('click', function(e) {
             e.stopPropagation();
-            const dropdown = document.getElementById('profileDropdown');
-            dropdown.classList.toggle('show');
+            document.getElementById('profileDropdown').classList.toggle('show');
         });
 
         // Close dropdown when clicking outside
@@ -2680,50 +2680,6 @@
                 document.getElementById('profileDropdown').classList.remove('show');
             }
         });
-
-        // Sign In button in dropdown - FIXED
-            document.getElementById('signInBtn').addEventListener('click', function() {
-                document.getElementById('signInModal').style.display = 'flex';
-                document.getElementById('profileDropdown').classList.remove('show');
-            });
-            
-            // Admin Login button in dropdown - FIXED
-            document.getElementById('adminLoginBtnDropdown').addEventListener('click', function() {
-                document.getElementById('adminLoginModal').style.display = 'flex';
-                document.getElementById('profileDropdown').classList.remove('show');
-            });
-            
-            // Register button in dropdown - FIXED
-            document.getElementById('registerBtn').addEventListener('click', function() {
-                document.querySelector('[data-tab="register"]').click();
-                document.getElementById('profileDropdown').classList.remove('show');
-            });
-            
-            // My Profile button in dropdown - FIXED
-            document.getElementById('myProfileBtn').addEventListener('click', function() {
-                if (currentUserId) {
-                    openEditModal(currentUserId);
-                }
-                document.getElementById('profileDropdown').classList.remove('show');
-            });
-            
-            // Edit Profile button in dropdown - FIXED
-            document.getElementById('editProfileBtnDropdown').addEventListener('click', function() {
-                if (currentUserId) {
-                    openEditModal(currentUserId);
-                }
-                document.getElementById('profileDropdown').classList.remove('show');
-            });
-            
-            // Logout button in dropdown - FIXED
-            document.getElementById('logoutBtn').addEventListener('click', function() {
-                currentUserId = null;
-                localStorage.removeItem('lifeshare-current-user');
-                updateProfileMenu();
-                showNotification('You have been logged out.', 'info');
-                displayDonors();
-                document.getElementById('profileDropdown').classList.remove('show');
-            });
 
         // Update profile menu based on login state
         async function updateProfileMenu() {
@@ -2887,7 +2843,7 @@
             document.getElementById('editFooterModal').style.display = 'none';
         });
 
-        // Update footer links - FIXED
+        // Update footer links
         async function updateFooterLinks() {
             const footerData = await dataStorage.loadFooterData();
             const facebookLink = document.getElementById('facebookLink');
@@ -2924,14 +2880,14 @@
             }
         }
 
-        // Show/hide edit icons on footer links for admin - FIXED
+        // Show/hide edit icons on footer links for admin
         function updateFooterEditIcons() {
             const editIcons = document.querySelectorAll('.edit-icon');
             editIcons.forEach(icon => {
                 icon.style.display = isAdminLoggedIn ? 'flex' : 'none';
             });
             
-            // Add click handlers for edit icons - FIXED
+            // Add click handlers for edit icons
             if (isAdminLoggedIn) {
                 document.querySelectorAll('.social-link').forEach(link => {
                     // Remove existing event listeners
@@ -2950,11 +2906,6 @@
                 });
             }
         }
-
-        // Edit Footer button - FIXED
-        document.getElementById('editFooterBtn').addEventListener('click', function() {
-            openEditFooterModal();
-        });
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', async function() {
