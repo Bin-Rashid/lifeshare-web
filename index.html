@@ -6,9 +6,10 @@
     <title>LifeShare - Blood Donor Management System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FIXED FIREBASE SDK -->
+    <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <style>
         :root {
             --primary: #e53935;
@@ -850,6 +851,46 @@
             opacity: 0.8;
         }
 
+        /* User Profile Styles */
+        .user-profile {
+            background: var(--light);
+            border-radius: var(--radius);
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--gray-light);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .profile-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .profile-info p {
+            color: var(--secondary);
+            margin-bottom: 4px;
+        }
+
+        /* Sort Controls */
+        .sort-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .sort-label {
+            font-weight: 500;
+            color: var(--secondary);
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             body {
@@ -933,6 +974,11 @@
             .footer-social {
                 justify-content: center;
             }
+
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
         }
 
         /* Utility Classes */
@@ -984,6 +1030,10 @@
                 <i class="fas fa-users"></i>
                 Find Donors 
                 <span class="tab-badge" id="donorCountBadge">0</span>
+            </div>
+            <div class="tab" data-tab="profile">
+                <i class="fas fa-user-circle"></i>
+                My Profile
             </div>
         </div>
 
@@ -1100,6 +1150,13 @@
                     
                     <div class="form-row">
                         <div class="form-group">
+                            <label for="editAge">
+                                <i class="fas fa-birthday-cake"></i>
+                                Age *
+                            </label>
+                            <input type="number" id="editAge" class="form-control" placeholder="Your age" min="18" max="65" required>
+                        </div>
+                        <div class="form-group">
                             <label for="editDistrict">
                                 <i class="fas fa-map"></i>
                                 District *
@@ -1116,13 +1173,14 @@
                                 <option value="Mymensingh">Mymensingh</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="editCity">
-                                <i class="fas fa-city"></i>
-                                City/Area *
-                            </label>
-                            <input type="text" id="editCity" class="form-control" placeholder="Your city or area" required>
-                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editCity">
+                            <i class="fas fa-city"></i>
+                            City/Area *
+                        </label>
+                        <input type="text" id="editCity" class="form-control" placeholder="Your city or area" required>
                     </div>
                     
                     <div class="form-group">
@@ -1152,7 +1210,7 @@
             <h2 class="section-title">
                 <i class="fas fa-user-plus"></i>
                 Become a Blood Donor
-                <small>* Required fields: Name, Phone, District, City/Area and Last Donation Date</small>
+                <small>* Required fields: Name, Phone, Age, District, City/Area and Last Donation Date</small>
             </h2>
             
             <div class="form-container">
@@ -1187,6 +1245,16 @@
                             <input type="tel" id="phone" class="form-control" placeholder="+880 1XXX-XXXXXX" required>
                         </div>
                         <div class="form-group">
+                            <label for="age">
+                                <i class="fas fa-birthday-cake"></i>
+                                Age *
+                            </label>
+                            <input type="number" id="age" class="form-control" placeholder="Your age" min="18" max="65" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
                             <label for="bloodType">
                                 <i class="fas fa-tint"></i>
                                 Blood Type
@@ -1203,9 +1271,6 @@
                                 <option value="O-">O-</option>
                             </select>
                         </div>
-                    </div>
-                    
-                    <div class="form-row">
                         <div class="form-group">
                             <label for="district">
                                 <i class="fas fa-map"></i>
@@ -1223,13 +1288,14 @@
                                 <option value="Mymensingh">Mymensingh</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="city">
-                                <i class="fas fa-city"></i>
-                                City/Area *
-                            </label>
-                            <input type="text" id="city" class="form-control" placeholder="Your city or area" required>
-                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="city">
+                            <i class="fas fa-city"></i>
+                            City/Area *
+                        </label>
+                        <input type="text" id="city" class="form-control" placeholder="Your city or area" required>
                     </div>
                     
                     <div class="form-group">
@@ -1275,7 +1341,7 @@
                         </button>
                     </div>
                 </div>
-                <p>You are logged in as an administrator. You can now delete donor records.</p>
+                <p>You are logged in as an administrator. You can now delete donor records and move donor cards.</p>
             </div>
             
             <h2 class="section-title">
@@ -1312,14 +1378,22 @@
                     <i class="fas fa-sync-alt"></i>
                     Refresh Data
                 </button>
-                <button id="addSampleBtn" class="btn btn-outline">
-                    <i class="fas fa-vial"></i>
-                    Add Sample Data
-                </button>
                 <button id="adminLoginBtn" class="btn btn-outline">
                     <i class="fas fa-user-shield"></i>
                     Admin Login
                 </button>
+            </div>
+            
+            <div class="sort-controls">
+                <span class="sort-label">Sort by:</span>
+                <select id="sortDonors" class="form-control" style="width: auto;">
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="age-asc">Age (Low to High)</option>
+                    <option value="age-desc">Age (High to Low)</option>
+                    <option value="date-asc">Registration Date (Oldest)</option>
+                    <option value="date-desc">Registration Date (Newest)</option>
+                </select>
             </div>
             
             <div class="search-filter">
@@ -1362,6 +1436,62 @@
             </div>
         </div>
 
+        <!-- Profile Tab Content -->
+        <div class="tab-content" id="profile-tab">
+            <h2 class="section-title">
+                <i class="fas fa-user-circle"></i>
+                My Profile
+                <small>Manage your personal information</small>
+            </h2>
+            
+            <div id="profileNotLoggedIn" class="empty-state">
+                <i class="fas fa-user-lock"></i>
+                <h3>Profile Access Required</h3>
+                <p>Please register as a donor first to access your personal profile.</p>
+                <button class="btn mt-4" onclick="document.querySelector('[data-tab=\\'register\\']').click()">
+                    <i class="fas fa-user-plus"></i>
+                    Register as Donor
+                </button>
+            </div>
+            
+            <div id="profileContent" class="hidden">
+                <div class="user-profile">
+                    <div class="profile-header">
+                        <div class="profile-picture-container">
+                            <div id="profilePictureDisplay" class="profile-picture-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <div class="profile-info">
+                            <h3 id="profileName">Loading...</h3>
+                            <p id="profileBloodType">Blood Type: Loading...</p>
+                            <p id="profileAge">Age: Loading...</p>
+                            <p id="profileLocation">Location: Loading...</p>
+                            <p id="profilePhone">Phone: Loading...</p>
+                            <p id="profileStatus">Status: Loading...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button id="editProfileBtn" class="btn">
+                            <i class="fas fa-edit"></i>
+                            Edit Profile
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-container">
+                    <h3 class="section-title">
+                        <i class="fas fa-history"></i>
+                        Donation History
+                    </h3>
+                    <div id="donationHistory">
+                        <p class="text-center">No donation history recorded yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
@@ -1393,7 +1523,7 @@
 
     <script>
         // =============================================
-        // CLOUD STORAGE WITH FIREBASE (FIXED VERSION)
+        // CLOUD STORAGE WITH FIREBASE
         // =============================================
         
         // Image compression function
@@ -1425,15 +1555,14 @@
 
         class CloudStorage {
             constructor() {
-                // ⚠️ REPLACE THIS WITH YOUR ACTUAL FIREBASE CONFIG ⚠️
                 this.config = {
-                    apiKey: "YOUR_API_KEY_HERE",
-                    authDomain: "YOUR_AUTH_DOMAIN_HERE",
-                    databaseURL: "YOUR_DATABASE_URL_HERE",
-                    projectId: "YOUR_PROJECT_ID_HERE",
-                    storageBucket: "YOUR_STORAGE_BUCKET_HERE",
-                    messagingSenderId: "YOUR_SENDER_ID_HERE",
-                    appId: "YOUR_APP_ID_HERE"
+                    apiKey: "AIzaSyC12Yy3vkdtfCWh-O2iHGBbTQVsMcF7qRI",
+                    authDomain: "lifeshare-donors.firebaseapp.com",
+                    databaseURL: "https://lifeshare-donors-default-rtdb.firebaseio.com",
+                    projectId: "lifeshare-donors",
+                    storageBucket: "lifeshare-donors.firebasestorage.app",
+                    messagingSenderId: "976631182826",
+                    appId: "1:976631182826:web:eb3287835b816e19c7ae93"
                 };
                 
                 this.initFirebase();
@@ -1645,7 +1774,7 @@
         }
 
         // =============================================
-        // APPLICATION CODE (REST REMAINS THE SAME)
+        // APPLICATION CODE
         // =============================================
 
         // Initialize storage
@@ -1654,6 +1783,7 @@
         // Admin password
         const ADMIN_PASSWORD = "admin123";
         let isAdminLoggedIn = false;
+        let currentUserId = null;
 
         // Notification system
         function showNotification(message, type = 'success', duration = 4000) {
@@ -1686,6 +1816,8 @@
                 if (tabId === 'donors') {
                     displayDonors();
                     updateStats();
+                } else if (tabId === 'profile') {
+                    loadProfile();
                 }
             });
         });
@@ -1714,8 +1846,26 @@
                 return;
             }
             
-            // Sort donors by most recent first
-            donorsToDisplay.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            // Sort donors based on selected option
+            const sortOption = document.getElementById('sortDonors').value;
+            donorsToDisplay.sort((a, b) => {
+                switch(sortOption) {
+                    case 'name-asc':
+                        return a.name.localeCompare(b.name);
+                    case 'name-desc':
+                        return b.name.localeCompare(a.name);
+                    case 'age-asc':
+                        return (a.age || 0) - (b.age || 0);
+                    case 'age-desc':
+                        return (b.age || 0) - (a.age || 0);
+                    case 'date-asc':
+                        return new Date(a.createdAt) - new Date(b.createdAt);
+                    case 'date-desc':
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                    default:
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                }
+            });
             
             donorsToDisplay.forEach(donor => {
                 const eligibility = dataStorage.getEligibilityStatus(donor.lastDonation);
@@ -1723,6 +1873,7 @@
                 
                 const donorCard = document.createElement('div');
                 donorCard.className = 'donor-card';
+                donorCard.setAttribute('data-id', donor.id);
                 donorCard.innerHTML = `
                     <div class="profile-picture-container">
                         ${donor.profilePicture ? 
@@ -1755,14 +1906,20 @@
                     </div>
                     
                     <div class="donor-actions">
-                        <button class="btn btn-outline btn-small edit-donor" data-id="${donor.id}">
-                            <i class="fas fa-edit"></i>
-                            Update
-                        </button>
+                        ${donor.id === currentUserId ? `
+                            <button class="btn btn-outline btn-small edit-donor" data-id="${donor.id}">
+                                <i class="fas fa-edit"></i>
+                                Update
+                            </button>
+                        ` : ''}
                         ${isAdminLoggedIn ? `
                             <button class="btn btn-danger btn-small delete-donor" data-id="${donor.id}">
                                 <i class="fas fa-trash"></i>
                                 Delete
+                            </button>
+                            <button class="btn btn-info btn-small move-donor" data-id="${donor.id}">
+                                <i class="fas fa-arrows-alt"></i>
+                                Move
                             </button>
                         ` : ''}
                     </div>
@@ -1784,6 +1941,14 @@
                     button.addEventListener('click', function() {
                         const donorId = this.getAttribute('data-id');
                         openDeleteModal(donorId);
+                    });
+                });
+                
+                // Add event listeners to move buttons
+                document.querySelectorAll('.move-donor').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const donorId = this.getAttribute('data-id');
+                        enableCardMoving(donorId);
                     });
                 });
             }
@@ -1810,11 +1975,18 @@
                 return;
             }
             
+            // Check if user is authorized to edit this donor
+            if (donorId !== currentUserId && !isAdminLoggedIn) {
+                showNotification('You can only edit your own profile.', 'error');
+                return;
+            }
+            
             // Populate form with donor data
             document.getElementById('editId').value = donor.id;
             document.getElementById('editName').value = donor.name || '';
             document.getElementById('editPhone').value = donor.phone || '';
             document.getElementById('editBloodType').value = donor.bloodType || '';
+            document.getElementById('editAge').value = donor.age || '';
             document.getElementById('editDistrict').value = donor.district || '';
             document.getElementById('editCity').value = donor.city || '';
             document.getElementById('editLastDonation').value = donor.lastDonation || '';
@@ -1871,14 +2043,23 @@
             
             const name = document.getElementById('name').value.trim();
             const phone = document.getElementById('phone').value.trim();
+            const age = document.getElementById('age').value;
             const bloodType = document.getElementById('bloodType').value;
             const district = document.getElementById('district').value;
             const city = document.getElementById('city').value.trim();
             const lastDonation = document.getElementById('lastDonation').value;
             
             // Validation
-            if (!name || !phone || !district || !city || !lastDonation) {
+            if (!name || !phone || !age || !district || !city || !lastDonation) {
                 showNotification('Please fill in all required fields.', 'error');
+                submitText.style.display = 'inline-block';
+                submitLoading.style.display = 'none';
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            if (age < 18 || age > 65) {
+                showNotification('Age must be between 18 and 65 to donate blood.', 'error');
                 submitText.style.display = 'inline-block';
                 submitLoading.style.display = 'none';
                 submitBtn.disabled = false;
@@ -1907,6 +2088,7 @@
                         
                         const newDonor = {
                             name,
+                            age,
                             bloodType,
                             district,
                             city,
@@ -1918,6 +2100,10 @@
                         const success = await dataStorage.addDonor(newDonor);
                         
                         if (success) {
+                            // Set current user ID
+                            currentUserId = newDonor.id;
+                            localStorage.setItem('lifeshare-current-user', currentUserId);
+                            
                             await displayDonors();
                             await updateStats();
                             showNotification('🎉 Thank you for registering as a blood donor! Your information has been added to our database.', 'success');
@@ -1935,6 +2121,7 @@
                 } else {
                     const newDonor = {
                         name,
+                        age,
                         bloodType,
                         district,
                         city,
@@ -1945,6 +2132,10 @@
                     const success = await dataStorage.addDonor(newDonor);
                     
                     if (success) {
+                        // Set current user ID
+                        currentUserId = newDonor.id;
+                        localStorage.setItem('lifeshare-current-user', currentUserId);
+                        
                         await displayDonors();
                         await updateStats();
                         showNotification('🎉 Thank you for registering as a blood donor! Your information has been added to our database.', 'success');
@@ -1975,6 +2166,7 @@
             const updatedData = {
                 name: document.getElementById('editName').value.trim(),
                 phone: document.getElementById('editPhone').value.trim(),
+                age: document.getElementById('editAge').value,
                 bloodType: document.getElementById('editBloodType').value,
                 district: document.getElementById('editDistrict').value,
                 city: document.getElementById('editCity').value.trim(),
@@ -1982,8 +2174,13 @@
             };
             
             // Validation
-            if (!updatedData.name || !updatedData.phone || !updatedData.district || !updatedData.city || !updatedData.lastDonation) {
+            if (!updatedData.name || !updatedData.phone || !updatedData.age || !updatedData.district || !updatedData.city || !updatedData.lastDonation) {
                 showNotification('Please fill in all required fields.', 'error');
+                return;
+            }
+            
+            if (updatedData.age < 18 || updatedData.age > 65) {
+                showNotification('Age must be between 18 and 65 to donate blood.', 'error');
                 return;
             }
             
@@ -2002,6 +2199,7 @@
                     if (success) {
                         showNotification('✅ Your information has been updated successfully!', 'success');
                         await displayDonors();
+                        await loadProfile();
                         document.getElementById('editModal').style.display = 'none';
                     } else {
                         showNotification('Failed to update your information.', 'error');
@@ -2013,6 +2211,7 @@
                 if (success) {
                     showNotification('✅ Your information has been updated successfully!', 'success');
                     await displayDonors();
+                    await loadProfile();
                     document.getElementById('editModal').style.display = 'none';
                 } else {
                     showNotification('Failed to update your information.', 'error');
@@ -2034,7 +2233,7 @@
                 isAdminLoggedIn = true;
                 document.getElementById('adminPanel').style.display = 'block';
                 document.getElementById('adminLoginModal').style.display = 'none';
-                showNotification('Admin login successful! You can now delete donor records.', 'success');
+                showNotification('Admin login successful! You can now delete donor records and move cards.', 'success');
                 displayDonors(); // Refresh to show delete buttons
             } else {
                 showNotification('Incorrect password. Please try again.', 'error');
@@ -2061,6 +2260,13 @@
                 document.getElementById('deleteModal').style.display = 'none';
                 await displayDonors();
                 await updateStats();
+                
+                // If current user was deleted, reset currentUserId
+                if (donorId === currentUserId) {
+                    currentUserId = null;
+                    localStorage.removeItem('lifeshare-current-user');
+                    loadProfile();
+                }
             } else {
                 showNotification('Failed to delete donor. Please try again.', 'error');
             }
@@ -2107,6 +2313,11 @@
             displayDonors();
         });
 
+        // Sort functionality
+        document.getElementById('sortDonors').addEventListener('change', function() {
+            displayDonors();
+        });
+
         // Export functionality
         document.getElementById('exportBtn').addEventListener('click', async function() {
             const donors = await dataStorage.loadDonors();
@@ -2133,59 +2344,6 @@
             showNotification('Data refreshed successfully!', 'success');
         });
 
-        // Add sample data
-        document.getElementById('addSampleBtn').addEventListener('click', async function() {
-            const sampleDonors = [
-                {
-                    name: "Rahim Ahmed",
-                    phone: "+880 1712-345678",
-                    bloodType: "A+",
-                    district: "Dhaka",
-                    city: "Mirpur",
-                    lastDonation: "2024-10-15",
-                    profilePicture: "",
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                },
-                {
-                    name: "Fatima Begum",
-                    phone: "+880 1812-345679",
-                    bloodType: "O+",
-                    district: "Chittagong",
-                    city: "Agrabad",
-                    lastDonation: "2024-09-20",
-                    profilePicture: "",
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                },
-                {
-                    name: "Karim Uddin",
-                    phone: "+880 1912-345680",
-                    bloodType: "B+",
-                    district: "Sylhet",
-                    city: "Zindabazar",
-                    lastDonation: "2024-11-05",
-                    profilePicture: "",
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                }
-            ];
-            
-            // Add sample donors one by one
-            let addedCount = 0;
-            for (const sampleDonor of sampleDonors) {
-                sampleDonor.id = dataStorage.generateId();
-                const success = await dataStorage.addDonor(sampleDonor);
-                if (success) {
-                    addedCount++;
-                }
-            }
-            
-            await displayDonors();
-            await updateStats();
-            showNotification(`${addedCount} sample donors added successfully!`, 'success');
-        });
-
         // Cancel edit
         document.getElementById('cancelEdit').addEventListener('click', function() {
             document.getElementById('editModal').style.display = 'none';
@@ -2203,6 +2361,145 @@
             }
         });
 
+        // Load user profile
+        async function loadProfile() {
+            const profileNotLoggedIn = document.getElementById('profileNotLoggedIn');
+            const profileContent = document.getElementById('profileContent');
+            
+            // Check if user is registered
+            if (!currentUserId) {
+                profileNotLoggedIn.classList.remove('hidden');
+                profileContent.classList.add('hidden');
+                return;
+            }
+            
+            // User is registered, show profile
+            profileNotLoggedIn.classList.add('hidden');
+            profileContent.classList.remove('hidden');
+            
+            const donors = await dataStorage.loadDonors();
+            const donor = donors.find(d => d.id === currentUserId);
+            
+            if (!donor) {
+                showNotification('Your profile could not be found.', 'error');
+                return;
+            }
+            
+            // Update profile information
+            document.getElementById('profileName').textContent = donor.name;
+            document.getElementById('profileBloodType').textContent = `Blood Type: ${donor.bloodType || 'Not specified'}`;
+            document.getElementById('profileAge').textContent = `Age: ${donor.age || 'Not specified'}`;
+            document.getElementById('profileLocation').textContent = `Location: ${donor.district}, ${donor.city}`;
+            document.getElementById('profilePhone').textContent = `Phone: ${donor.phone}`;
+            
+            const eligibility = dataStorage.getEligibilityStatus(donor.lastDonation);
+            document.getElementById('profileStatus').textContent = `Status: ${eligibility.message}`;
+            
+            // Update profile picture
+            const profilePictureDisplay = document.getElementById('profilePictureDisplay');
+            if (donor.profilePicture) {
+                profilePictureDisplay.innerHTML = `<img src="${donor.profilePicture}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+            } else {
+                profilePictureDisplay.innerHTML = '<i class="fas fa-user"></i>';
+            }
+            
+            // Update donation history
+            const donationHistory = document.getElementById('donationHistory');
+            if (donor.lastDonation) {
+                const lastDonationDate = new Date(donor.lastDonation).toLocaleDateString();
+                donationHistory.innerHTML = `
+                    <div style="text-align: center;">
+                        <p><strong>Last Donation:</strong> ${lastDonationDate}</p>
+                        <p><strong>Eligibility:</strong> ${eligibility.message}</p>
+                    </div>
+                `;
+            } else {
+                donationHistory.innerHTML = '<p class="text-center">No donation history recorded yet.</p>';
+            }
+        }
+
+        // Edit profile button
+        document.getElementById('editProfileBtn').addEventListener('click', function() {
+            if (currentUserId) {
+                openEditModal(currentUserId);
+            }
+        });
+
+        // Enable card moving for admin
+        function enableCardMoving(donorId) {
+            if (!isAdminLoggedIn) {
+                showNotification('Only administrators can move donor cards.', 'error');
+                return;
+            }
+            
+            const donorCard = document.querySelector(`.donor-card[data-id="${donorId}"]`);
+            if (!donorCard) return;
+            
+            // Create a clone for dragging
+            const clone = donorCard.cloneNode(true);
+            clone.style.position = 'absolute';
+            clone.style.zIndex = '1000';
+            clone.style.opacity = '0.8';
+            clone.style.cursor = 'grabbing';
+            document.body.appendChild(clone);
+            
+            // Set initial position
+            const rect = donorCard.getBoundingClientRect();
+            clone.style.left = `${rect.left}px`;
+            clone.style.top = `${rect.top}px`;
+            clone.style.width = `${rect.width}px`;
+            
+            // Add event listeners for dragging
+            function moveAt(pageX, pageY) {
+                clone.style.left = `${pageX - rect.width / 2}px`;
+                clone.style.top = `${pageY - rect.height / 2}px`;
+            }
+            
+            function onMouseMove(event) {
+                moveAt(event.pageX, event.pageY);
+            }
+            
+            document.addEventListener('mousemove', onMouseMove);
+            
+            // On mouse up, drop the card
+            clone.onmouseup = function() {
+                document.removeEventListener('mousemove', onMouseMove);
+                clone.remove();
+                
+                // Check if dropped on another card
+                const elements = document.elementsFromPoint(event.clientX, event.clientY);
+                const targetCard = elements.find(el => el.classList.contains('donor-card') && el !== donorCard);
+                
+                if (targetCard) {
+                    const targetId = targetCard.getAttribute('data-id');
+                    swapDonorPositions(donorId, targetId);
+                }
+                
+                showNotification('Card moved successfully!', 'success');
+            };
+            
+            // Initial move to cursor position
+            moveAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
+
+        // Swap donor positions in the display
+        async function swapDonorPositions(donorId1, donorId2) {
+            const donors = await dataStorage.loadDonors();
+            const index1 = donors.findIndex(d => d.id === donorId1);
+            const index2 = donors.findIndex(d => d.id === donorId2);
+            
+            if (index1 !== -1 && index2 !== -1) {
+                // Swap the donors in the array
+                [donors[index1], donors[index2]] = [donors[index2], donors[index1]];
+                
+                // Save the updated order
+                await dataStorage.saveDonors(donors);
+                
+                // Refresh the display
+                await displayDonors();
+            }
+        }
+
         // Initialize the page
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 Initializing LifeShare Blood Donor Management System...');
@@ -2218,9 +2515,16 @@
                 document.getElementById('profilePreview')
             );
             
+            // Check for existing user session
+            const savedUserId = localStorage.getItem('lifeshare-current-user');
+            if (savedUserId) {
+                currentUserId = savedUserId;
+            }
+            
             // Load initial data
             await displayDonors();
             await updateStats();
+            await loadProfile();
             
             console.log('✅ LifeShare initialized successfully');
             
