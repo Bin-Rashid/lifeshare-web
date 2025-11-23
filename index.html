@@ -64,10 +64,12 @@
         .header {
             background: var(--primary-gradient);
             color: white;
-            padding: 40px;
+            padding: 30px 40px 20px;
             text-align: center;
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .header::before {
@@ -80,20 +82,112 @@
             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
         }
 
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
         .logo {
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 16px;
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: 700;
-            margin-bottom: 12px;
-            position: relative;
         }
 
         .logo i {
-            font-size: 2.8rem;
+            font-size: 2.5rem;
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .user-profile-menu {
+            position: relative;
+        }
+
+        .profile-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50px;
+            padding: 8px 16px;
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        .profile-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .profile-image {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .profile-image-placeholder {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            width: 220px;
+            padding: 10px 0;
+            margin-top: 10px;
+            z-index: 100;
+            display: none;
+        }
+
+        .profile-dropdown.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .profile-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: var(--transition);
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+        }
+
+        .profile-dropdown-item:hover {
+            background: var(--light);
+        }
+
+        .profile-dropdown-item i {
+            width: 20px;
+            color: var(--primary);
         }
 
         .tagline {
@@ -103,6 +197,8 @@
             margin: 0 auto;
             font-weight: 300;
             line-height: 1.5;
+            position: relative;
+            z-index: 1;
         }
 
         /* Tab Styles */
@@ -834,6 +930,7 @@
             text-decoration: none;
             transition: var(--transition);
             backdrop-filter: blur(10px);
+            position: relative;
         }
 
         .social-link:hover {
@@ -841,6 +938,27 @@
             border-color: rgba(255, 255, 255, 0.4);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .edit-icon {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .social-link:hover .edit-icon {
+            opacity: 1;
         }
 
         .footer-bottom {
@@ -898,15 +1016,20 @@
             }
 
             .header {
-                padding: 30px 20px;
+                padding: 20px 20px 15px;
+            }
+
+            .header-top {
+                flex-direction: column;
+                gap: 15px;
             }
 
             .logo {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
 
             .logo i {
-                font-size: 2.2rem;
+                font-size: 2rem;
             }
 
             .tab {
@@ -1013,9 +1136,46 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <div class="logo">
-                <i class="fas fa-tint"></i>
-                LifeShare
+            <div class="header-top">
+                <div class="logo">
+                    <i class="fas fa-tint"></i>
+                    LifeShare
+                </div>
+                <div class="user-profile-menu">
+                    <button class="profile-toggle" id="profileToggle">
+                        <div id="headerProfileImage" class="profile-image-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span id="headerProfileName">Profile</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <button class="profile-dropdown-item" id="signInBtn">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Sign In
+                        </button>
+                        <button class="profile-dropdown-item" id="registerBtn">
+                            <i class="fas fa-user-plus"></i>
+                            Register
+                        </button>
+                        <button class="profile-dropdown-item" id="myProfileBtn" style="display: none;">
+                            <i class="fas fa-user-circle"></i>
+                            My Profile
+                        </button>
+                        <button class="profile-dropdown-item" id="editProfileBtnDropdown" style="display: none;">
+                            <i class="fas fa-edit"></i>
+                            Edit Profile
+                        </button>
+                        <button class="profile-dropdown-item" id="adminLoginBtnDropdown">
+                            <i class="fas fa-user-shield"></i>
+                            Admin Login
+                        </button>
+                        <button class="profile-dropdown-item" id="logoutBtn" style="display: none;">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </div>
+                </div>
             </div>
             <p class="tagline">Connecting blood donors with those in need. Your single donation can save up to three lives.</p>
         </div>
@@ -1031,14 +1191,39 @@
                 Find Donors 
                 <span class="tab-badge" id="donorCountBadge">0</span>
             </div>
-            <div class="tab" data-tab="profile">
-                <i class="fas fa-user-circle"></i>
-                My Profile
-            </div>
         </div>
 
         <!-- Notification -->
         <div id="notification" class="notification"></div>
+
+        <!-- Sign In Modal -->
+        <div id="signInModal" class="modal">
+            <div class="modal-content">
+                <h3 class="modal-title">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In with Phone
+                </h3>
+                <form id="signInForm">
+                    <div class="form-group">
+                        <label for="signInPhone">
+                            <i class="fas fa-phone"></i>
+                            Phone Number *
+                        </label>
+                        <input type="tel" id="signInPhone" class="form-control" placeholder="+880 1XXX-XXXXXX" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="submit" class="btn">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Sign In
+                        </button>
+                        <button type="button" id="cancelSignIn" class="btn btn-outline">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <!-- Admin Login Modal -->
         <div id="adminLoginModal" class="modal">
@@ -1061,6 +1246,49 @@
                             Login
                         </button>
                         <button type="button" id="cancelAdminLogin" class="btn btn-outline">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Footer Modal -->
+        <div id="editFooterModal" class="modal">
+            <div class="modal-content">
+                <h3 class="modal-title">
+                    <i class="fas fa-edit"></i>
+                    Edit Footer Links
+                </h3>
+                <form id="editFooterForm">
+                    <div class="form-group">
+                        <label for="editFacebook">
+                            <i class="fab fa-facebook"></i>
+                            Facebook URL
+                        </label>
+                        <input type="url" id="editFacebook" class="form-control" placeholder="https://facebook.com/yourpage">
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmail">
+                            <i class="fas fa-envelope"></i>
+                            Email Address
+                        </label>
+                        <input type="email" id="editEmail" class="form-control" placeholder="contact@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhone">
+                            <i class="fas fa-phone"></i>
+                            Phone Number
+                        </label>
+                        <input type="tel" id="editFooterPhone" class="form-control" placeholder="+880 1XXX-XXXXXX">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="submit" class="btn">
+                            <i class="fas fa-save"></i>
+                            Save Changes
+                        </button>
+                        <button type="button" id="cancelFooterEdit" class="btn btn-outline">
                             <i class="fas fa-times"></i>
                             Cancel
                         </button>
@@ -1335,6 +1563,10 @@
                         Admin Panel
                     </div>
                     <div class="admin-actions">
+                        <button id="editFooterBtn" class="btn btn-outline btn-small">
+                            <i class="fas fa-edit"></i>
+                            Edit Footer
+                        </button>
                         <button id="logoutAdmin" class="btn btn-outline btn-small">
                             <i class="fas fa-sign-out-alt"></i>
                             Logout
@@ -1377,10 +1609,6 @@
                 <button id="refreshBtn" class="btn btn-info">
                     <i class="fas fa-sync-alt"></i>
                     Refresh Data
-                </button>
-                <button id="adminLoginBtn" class="btn btn-outline">
-                    <i class="fas fa-user-shield"></i>
-                    Admin Login
                 </button>
             </div>
             
@@ -1436,62 +1664,6 @@
             </div>
         </div>
 
-        <!-- Profile Tab Content -->
-        <div class="tab-content" id="profile-tab">
-            <h2 class="section-title">
-                <i class="fas fa-user-circle"></i>
-                My Profile
-                <small>Manage your personal information</small>
-            </h2>
-            
-            <div id="profileNotLoggedIn" class="empty-state">
-                <i class="fas fa-user-lock"></i>
-                <h3>Profile Access Required</h3>
-                <p>Please register as a donor first to access your personal profile.</p>
-                <button class="btn mt-4" onclick="document.querySelector('[data-tab=\\'register\\']').click()">
-                    <i class="fas fa-user-plus"></i>
-                    Register as Donor
-                </button>
-            </div>
-            
-            <div id="profileContent" class="hidden">
-                <div class="user-profile">
-                    <div class="profile-header">
-                        <div class="profile-picture-container">
-                            <div id="profilePictureDisplay" class="profile-picture-placeholder">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        </div>
-                        <div class="profile-info">
-                            <h3 id="profileName">Loading...</h3>
-                            <p id="profileBloodType">Blood Type: Loading...</p>
-                            <p id="profileAge">Age: Loading...</p>
-                            <p id="profileLocation">Location: Loading...</p>
-                            <p id="profilePhone">Phone: Loading...</p>
-                            <p id="profileStatus">Status: Loading...</p>
-                        </div>
-                    </div>
-                    
-                    <div class="profile-actions">
-                        <button id="editProfileBtn" class="btn">
-                            <i class="fas fa-edit"></i>
-                            Edit Profile
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="form-container">
-                    <h3 class="section-title">
-                        <i class="fas fa-history"></i>
-                        Donation History
-                    </h3>
-                    <div id="donationHistory">
-                        <p class="text-center">No donation history recorded yet.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
@@ -1504,14 +1676,23 @@
                     <p class="footer-subtitle">A initiative powered by Sadaqah Fund</p>
                 </div>
                 <div class="footer-social">
-                    <a href="#" class="social-link" title="Facebook">
+                    <a href="#" class="social-link" id="facebookLink" title="Facebook">
                         <i class="fab fa-facebook-f"></i>
+                        <span class="edit-icon" style="display: none;">
+                            <i class="fas fa-pencil-alt"></i>
+                        </span>
                     </a>
-                    <a href="#" class="social-link" title="Email">
+                    <a href="#" class="social-link" id="emailLink" title="Email">
                         <i class="fas fa-envelope"></i>
+                        <span class="edit-icon" style="display: none;">
+                            <i class="fas fa-pencil-alt"></i>
+                        </span>
                     </a>
-                    <a href="#" class="social-link" title="Phone">
+                    <a href="#" class="social-link" id="phoneLink" title="Phone">
                         <i class="fas fa-phone"></i>
+                        <span class="edit-icon" style="display: none;">
+                            <i class="fas fa-pencil-alt"></i>
+                        </span>
                     </a>
                 </div>
             </div>
@@ -1575,6 +1756,7 @@
                         this.app = firebase.initializeApp(this.config);
                         this.database = this.app.database();
                         this.donorsRef = this.database.ref('donors');
+                        this.footerRef = this.database.ref('footer');
                         console.log('🔥 Firebase initialized successfully');
                     } else {
                         throw new Error('Firebase SDK not loaded');
@@ -1694,6 +1876,39 @@
                 return false;
             }
 
+            // Footer data methods
+            async loadFooterData() {
+                if (this.database) {
+                    try {
+                        const snapshot = await this.footerRef.once('value');
+                        const footerData = snapshot.val();
+                        return footerData || {};
+                    } catch (error) {
+                        console.error('Error loading footer data:', error);
+                    }
+                }
+                
+                // Fallback to localStorage
+                return this.loadFooterFromLocalStorage();
+            }
+
+            async saveFooterData(footerData) {
+                // Save to localStorage
+                this.saveFooterToLocalStorage(footerData);
+                
+                // Sync to Firebase
+                if (this.database) {
+                    try {
+                        await this.footerRef.set(footerData);
+                        return true;
+                    } catch (error) {
+                        console.error('Error saving footer data to Firebase:', error);
+                    }
+                }
+                
+                return true;
+            }
+
             // Local storage fallback methods
             loadFromLocalStorage() {
                 try {
@@ -1711,6 +1926,26 @@
                     return true;
                 } catch (error) {
                     console.error('Error saving to localStorage:', error);
+                    return false;
+                }
+            }
+
+            loadFooterFromLocalStorage() {
+                try {
+                    const stored = localStorage.getItem('lifeshare-footer');
+                    return stored ? JSON.parse(stored) : {};
+                } catch (error) {
+                    console.error('Error loading footer from localStorage:', error);
+                    return {};
+                }
+            }
+
+            saveFooterToLocalStorage(footerData) {
+                try {
+                    localStorage.setItem('lifeshare-footer', JSON.stringify(footerData));
+                    return true;
+                } catch (error) {
+                    console.error('Error saving footer to localStorage:', error);
                     return false;
                 }
             }
@@ -1816,8 +2051,6 @@
                 if (tabId === 'donors') {
                     displayDonors();
                     updateStats();
-                } else if (tabId === 'profile') {
-                    loadProfile();
                 }
             });
         });
@@ -2106,6 +2339,7 @@
                             
                             await displayDonors();
                             await updateStats();
+                            updateProfileMenu();
                             showNotification('🎉 Thank you for registering as a blood donor! Your information has been added to our database.', 'success');
                             document.getElementById('bloodDonorForm').reset();
                             document.getElementById('registerProfilePreview').innerHTML = '<i class="fas fa-user"></i>';
@@ -2138,6 +2372,7 @@
                         
                         await displayDonors();
                         await updateStats();
+                        updateProfileMenu();
                         showNotification('🎉 Thank you for registering as a blood donor! Your information has been added to our database.', 'success');
                         this.reset();
                         document.getElementById('registerProfilePreview').innerHTML = '<i class="fas fa-user"></i>';
@@ -2199,7 +2434,7 @@
                     if (success) {
                         showNotification('✅ Your information has been updated successfully!', 'success');
                         await displayDonors();
-                        await loadProfile();
+                        updateProfileMenu();
                         document.getElementById('editModal').style.display = 'none';
                     } else {
                         showNotification('Failed to update your information.', 'error');
@@ -2211,7 +2446,7 @@
                 if (success) {
                     showNotification('✅ Your information has been updated successfully!', 'success');
                     await displayDonors();
-                    await loadProfile();
+                    updateProfileMenu();
                     document.getElementById('editModal').style.display = 'none';
                 } else {
                     showNotification('Failed to update your information.', 'error');
@@ -2219,8 +2454,38 @@
             }
         });
 
+        // Sign In functionality
+        document.getElementById('signInBtn').addEventListener('click', function() {
+            document.getElementById('signInModal').style.display = 'flex';
+        });
+
+        document.getElementById('signInForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('signInPhone').value.trim();
+            
+            if (!phone) {
+                showNotification('Please enter your phone number.', 'error');
+                return;
+            }
+            
+            const donors = await dataStorage.loadDonors();
+            const donor = donors.find(d => d.phone === phone);
+            
+            if (donor) {
+                currentUserId = donor.id;
+                localStorage.setItem('lifeshare-current-user', currentUserId);
+                updateProfileMenu();
+                document.getElementById('signInModal').style.display = 'none';
+                showNotification(`Welcome back, ${donor.name}!`, 'success');
+                this.reset();
+            } else {
+                showNotification('No account found with this phone number. Please register first.', 'error');
+            }
+        });
+
         // Admin login functionality
-        document.getElementById('adminLoginBtn').addEventListener('click', function() {
+        document.getElementById('adminLoginBtnDropdown').addEventListener('click', function() {
             document.getElementById('adminLoginModal').style.display = 'flex';
         });
 
@@ -2233,8 +2498,10 @@
                 isAdminLoggedIn = true;
                 document.getElementById('adminPanel').style.display = 'block';
                 document.getElementById('adminLoginModal').style.display = 'none';
+                updateProfileMenu();
                 showNotification('Admin login successful! You can now delete donor records and move cards.', 'success');
                 displayDonors(); // Refresh to show delete buttons
+                updateFooterEditIcons();
             } else {
                 showNotification('Incorrect password. Please try again.', 'error');
             }
@@ -2246,8 +2513,41 @@
         document.getElementById('logoutAdmin').addEventListener('click', function() {
             isAdminLoggedIn = false;
             document.getElementById('adminPanel').style.display = 'none';
+            updateProfileMenu();
             showNotification('Admin logged out successfully.', 'info');
             displayDonors(); // Refresh to hide delete buttons
+            updateFooterEditIcons();
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            currentUserId = null;
+            localStorage.removeItem('lifeshare-current-user');
+            updateProfileMenu();
+            showNotification('You have been logged out.', 'info');
+            displayDonors(); // Refresh to hide edit buttons
+        });
+
+        // Register button in dropdown
+        document.getElementById('registerBtn').addEventListener('click', function() {
+            document.querySelector('[data-tab="register"]').click();
+            document.getElementById('profileDropdown').classList.remove('show');
+        });
+
+        // My Profile button in dropdown
+        document.getElementById('myProfileBtn').addEventListener('click', function() {
+            if (currentUserId) {
+                openEditModal(currentUserId);
+            }
+            document.getElementById('profileDropdown').classList.remove('show');
+        });
+
+        // Edit Profile button in dropdown
+        document.getElementById('editProfileBtnDropdown').addEventListener('click', function() {
+            if (currentUserId) {
+                openEditModal(currentUserId);
+            }
+            document.getElementById('profileDropdown').classList.remove('show');
         });
 
         // Delete donor functionality
@@ -2265,7 +2565,7 @@
                 if (donorId === currentUserId) {
                     currentUserId = null;
                     localStorage.removeItem('lifeshare-current-user');
-                    loadProfile();
+                    updateProfileMenu();
                 }
             } else {
                 showNotification('Failed to delete donor. Please try again.', 'error');
@@ -2349,6 +2649,11 @@
             document.getElementById('editModal').style.display = 'none';
         });
 
+        // Cancel sign in
+        document.getElementById('cancelSignIn').addEventListener('click', function() {
+            document.getElementById('signInModal').style.display = 'none';
+        });
+
         // Cancel admin login
         document.getElementById('cancelAdminLogin').addEventListener('click', function() {
             document.getElementById('adminLoginModal').style.display = 'none';
@@ -2361,69 +2666,61 @@
             }
         });
 
-        // Load user profile
-        async function loadProfile() {
-            const profileNotLoggedIn = document.getElementById('profileNotLoggedIn');
-            const profileContent = document.getElementById('profileContent');
-            
-            // Check if user is registered
-            if (!currentUserId) {
-                profileNotLoggedIn.classList.remove('hidden');
-                profileContent.classList.add('hidden');
-                return;
-            }
-            
-            // User is registered, show profile
-            profileNotLoggedIn.classList.add('hidden');
-            profileContent.classList.remove('hidden');
-            
-            const donors = await dataStorage.loadDonors();
-            const donor = donors.find(d => d.id === currentUserId);
-            
-            if (!donor) {
-                showNotification('Your profile could not be found.', 'error');
-                return;
-            }
-            
-            // Update profile information
-            document.getElementById('profileName').textContent = donor.name;
-            document.getElementById('profileBloodType').textContent = `Blood Type: ${donor.bloodType || 'Not specified'}`;
-            document.getElementById('profileAge').textContent = `Age: ${donor.age || 'Not specified'}`;
-            document.getElementById('profileLocation').textContent = `Location: ${donor.district}, ${donor.city}`;
-            document.getElementById('profilePhone').textContent = `Phone: ${donor.phone}`;
-            
-            const eligibility = dataStorage.getEligibilityStatus(donor.lastDonation);
-            document.getElementById('profileStatus').textContent = `Status: ${eligibility.message}`;
-            
-            // Update profile picture
-            const profilePictureDisplay = document.getElementById('profilePictureDisplay');
-            if (donor.profilePicture) {
-                profilePictureDisplay.innerHTML = `<img src="${donor.profilePicture}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
-            } else {
-                profilePictureDisplay.innerHTML = '<i class="fas fa-user"></i>';
-            }
-            
-            // Update donation history
-            const donationHistory = document.getElementById('donationHistory');
-            if (donor.lastDonation) {
-                const lastDonationDate = new Date(donor.lastDonation).toLocaleDateString();
-                donationHistory.innerHTML = `
-                    <div style="text-align: center;">
-                        <p><strong>Last Donation:</strong> ${lastDonationDate}</p>
-                        <p><strong>Eligibility:</strong> ${eligibility.message}</p>
-                    </div>
-                `;
-            } else {
-                donationHistory.innerHTML = '<p class="text-center">No donation history recorded yet.</p>';
-            }
-        }
-
-        // Edit profile button
-        document.getElementById('editProfileBtn').addEventListener('click', function() {
-            if (currentUserId) {
-                openEditModal(currentUserId);
-            }
+        // Profile dropdown toggle
+        document.getElementById('profileToggle').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('profileDropdown').classList.toggle('show');
         });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function() {
+            document.getElementById('profileDropdown').classList.remove('show');
+        });
+
+        // Update profile menu based on login state
+        async function updateProfileMenu() {
+            const signInBtn = document.getElementById('signInBtn');
+            const registerBtn = document.getElementById('registerBtn');
+            const myProfileBtn = document.getElementById('myProfileBtn');
+            const editProfileBtn = document.getElementById('editProfileBtnDropdown');
+            const adminLoginBtn = document.getElementById('adminLoginBtnDropdown');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const headerProfileName = document.getElementById('headerProfileName');
+            const headerProfileImage = document.getElementById('headerProfileImage');
+            
+            if (currentUserId) {
+                const donors = await dataStorage.loadDonors();
+                const donor = donors.find(d => d.id === currentUserId);
+                
+                if (donor) {
+                    headerProfileName.textContent = donor.name;
+                    
+                    if (donor.profilePicture) {
+                        headerProfileImage.innerHTML = `<img src="${donor.profilePicture}" class="profile-image" alt="${donor.name}">`;
+                    } else {
+                        headerProfileImage.innerHTML = '<i class="fas fa-user"></i>';
+                    }
+                    
+                    signInBtn.style.display = 'none';
+                    registerBtn.style.display = 'none';
+                    myProfileBtn.style.display = 'flex';
+                    editProfileBtn.style.display = 'flex';
+                    logoutBtn.style.display = 'flex';
+                }
+            } else {
+                headerProfileName.textContent = 'Profile';
+                headerProfileImage.innerHTML = '<i class="fas fa-user"></i>';
+                
+                signInBtn.style.display = 'flex';
+                registerBtn.style.display = 'flex';
+                myProfileBtn.style.display = 'none';
+                editProfileBtn.style.display = 'none';
+                logoutBtn.style.display = 'none';
+            }
+            
+            // Admin login button visibility
+            adminLoginBtn.style.display = isAdminLoggedIn ? 'none' : 'flex';
+        }
 
         // Enable card moving for admin
         function enableCardMoving(donorId) {
@@ -2500,6 +2797,97 @@
             }
         }
 
+        // Footer editing functionality
+        document.getElementById('editFooterBtn').addEventListener('click', function() {
+            openEditFooterModal();
+        });
+
+        async function openEditFooterModal() {
+            const footerData = await dataStorage.loadFooterData();
+            
+            document.getElementById('editFacebook').value = footerData.facebook || '';
+            document.getElementById('editEmail').value = footerData.email || '';
+            document.getElementById('editFooterPhone').value = footerData.phone || '';
+            
+            document.getElementById('editFooterModal').style.display = 'flex';
+        }
+
+        document.getElementById('editFooterForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const facebook = document.getElementById('editFacebook').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
+            const phone = document.getElementById('editFooterPhone').value.trim();
+            
+            const footerData = {
+                facebook,
+                email,
+                phone
+            };
+            
+            const success = await dataStorage.saveFooterData(footerData);
+            if (success) {
+                showNotification('Footer links updated successfully!', 'success');
+                document.getElementById('editFooterModal').style.display = 'none';
+                updateFooterLinks();
+            } else {
+                showNotification('Failed to update footer links.', 'error');
+            }
+        });
+
+        document.getElementById('cancelFooterEdit').addEventListener('click', function() {
+            document.getElementById('editFooterModal').style.display = 'none';
+        });
+
+        // Update footer links
+        async function updateFooterLinks() {
+            const footerData = await dataStorage.loadFooterData();
+            const facebookLink = document.getElementById('facebookLink');
+            const emailLink = document.getElementById('emailLink');
+            const phoneLink = document.getElementById('phoneLink');
+            
+            if (footerData.facebook) {
+                facebookLink.href = footerData.facebook;
+                facebookLink.style.display = 'flex';
+            } else {
+                facebookLink.style.display = 'none';
+            }
+            
+            if (footerData.email) {
+                emailLink.href = `mailto:${footerData.email}`;
+                emailLink.style.display = 'flex';
+            } else {
+                emailLink.style.display = 'none';
+            }
+            
+            if (footerData.phone) {
+                phoneLink.href = `tel:${footerData.phone}`;
+                phoneLink.style.display = 'flex';
+            } else {
+                phoneLink.style.display = 'none';
+            }
+        }
+
+        // Show/hide edit icons on footer links for admin
+        function updateFooterEditIcons() {
+            const editIcons = document.querySelectorAll('.edit-icon');
+            editIcons.forEach(icon => {
+                icon.style.display = isAdminLoggedIn ? 'flex' : 'none';
+            });
+            
+            // Add click handlers for edit icons
+            if (isAdminLoggedIn) {
+                document.querySelectorAll('.social-link').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        if (e.target.closest('.edit-icon')) {
+                            e.preventDefault();
+                            openEditFooterModal();
+                        }
+                    });
+                });
+            }
+        }
+
         // Initialize the page
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 Initializing LifeShare Blood Donor Management System...');
@@ -2521,10 +2909,19 @@
                 currentUserId = savedUserId;
             }
             
+            // Check for admin session
+            const savedAdminStatus = localStorage.getItem('lifeshare-admin');
+            if (savedAdminStatus === 'true') {
+                isAdminLoggedIn = true;
+                document.getElementById('adminPanel').style.display = 'block';
+                updateFooterEditIcons();
+            }
+            
             // Load initial data
             await displayDonors();
             await updateStats();
-            await loadProfile();
+            await updateFooterLinks();
+            updateProfileMenu();
             
             console.log('✅ LifeShare initialized successfully');
             
